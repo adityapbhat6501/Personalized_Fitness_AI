@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>FitAI Dashboard</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            font-family: 'Poppins', sans-serif;
+            transition: all 0.35s ease;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f9b8e, #0c6f64);
+            min-height: 100vh;
+            color: white;
+            opacity: 0;
+        }
+
+        .dashboard-card {
+            background: rgba(255,255,255,0.18);
+            border-radius: 20px;
+            padding: 22px;
+            backdrop-filter: blur(12px);
+            animation: fadeUp 0.9s ease forwards;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .metric {
+            font-size: 36px;
+            font-weight: 700;
+        }
+
+        .label {
+            opacity: 0.8;
+            font-size: 15px;
+        }
+
+        /* Animations */
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(25px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Tabs */
+        .nav-tabs .nav-link {
+            color: white;
+            border: none;
+            opacity: 0.7;
+        }
+
+        .nav-tabs .nav-link.active {
+            background: rgba(255,255,255,0.25);
+            border-radius: 12px;
+            opacity: 1;
+        }
+
+        .progress {
+            height: 18px;
+            border-radius: 20px;
+        }
+
+        .progress-bar {
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+
+<nav class="navbar navbar-dark">
+    <div class="container">
+        <span class="navbar-brand fw-bold fs-4">FitAI • Fitness Dashboard</span>
+    </div>
+</nav>
+
+<div class="container py-4">
+
+    <!-- METRICS -->
+    <div class="row g-4 mb-4 text-center">
+        <div class="col-md-4">
+            <div class="dashboard-card">
+                <div class="label">BMI</div>
+                <div class="metric">{{ bmi }}</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="dashboard-card">
+                <div class="label">Daily Calories</div>
+                <div class="metric">{{ calories }} kcal</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="dashboard-card">
+                <div class="label">Goal</div>
+                <div class="metric">{{ recommendation["Fitness Goal"] }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CHART + PROGRESS -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-6">
+            <div class="dashboard-card">
+                <h5 class="mb-3">Macronutrient Distribution</h5>
+                <canvas id="macroChart"></canvas>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="dashboard-card">
+                <h5 class="mb-3">Daily Activity Progress</h5>
+
+                <p class="mb-1">Workout Time Used</p>
+                <div class="progress mb-3">
+                    <div class="progress-bar bg-success" style="width: {{ recommendation['Time per Day'] }}%">
+                        {{ recommendation['Time per Day'] }}%
+                    </div>
+                </div>
+
+                <p class="mb-1">Calorie Target</p>
+                <div class="progress">
+                    <div class="progress-bar bg-warning" style="width: 70%">
+                        On Track
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TODAY PLAN -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-6">
+            <div class="dashboard-card">
+                <h4 class="mb-3">🏋️ Today’s Workout</h4>
+                {% for w in workout %}
+                    <div class="mb-2">
+                        <b>{{ w.exercise }}</b><br>
+                        <small>{{ w.muscle }} • {{ w.equipment }}</small>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="dashboard-card">
+                <h4 class="mb-3">🍛 Today’s Diet</h4>
+                {% for d in diet %}
+                    <div class="mb-2">
+                        <b>{{ d.dish }}</b><br>
+                        <small>{{ d.calories }} kcal • Protein {{ d.protein }}g</small>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- WEEKLY PLAN -->
+    <h3 class="mb-3">📅 Weekly Workout Plan</h3>
+
+    <ul class="nav nav-tabs mb-3">
+        {% for day in weekly_workout.keys() %}
+        <li class="nav-item">
+            <a class="nav-link {% if loop.first %}active{% endif %}"
+               data-bs-toggle="tab"
+               href="#{{ day }}">{{ day }}</a>
+        </li>
+        {% endfor %}
+    </ul>
+
+    <div class="tab-content">
+        {% for day, exercises in weekly_workout.items() %}
+        <div class="tab-pane fade {% if loop.first %}show active{% endif %}" id="{{ day }}">
+            <div class="row g-3">
+                {% for ex in exercises %}
+                <div class="col-md-4">
+                    <div class="dashboard-card">
+                        <b>{{ ex.exercise }}</b><br>
+                        <small>{{ ex.muscle }} • {{ ex.equipment }}</small>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="text-center mt-5">
+        <a href="/" class="btn btn-light btn-lg px-5">⬅ Generate Another Plan</a>
+    </div>
+
+</div>
+
+<!-- CHART SCRIPT -->
+<script>
+    const ctx = document.getElementById('macroChart');
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Protein', 'Carbs', 'Fats'],
+            datasets: [{
+                data: [
+                    {{ diet[0]['protein'] }},
+                    {{ diet[0]['carbs'] }},
+                    {{ diet[0]['fats'] }}
+                ],
+                backgroundColor: ['#a5ffd6', '#ffd6a5', '#ffadad']
+            }]
+        },
+        options: {
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, ticks: { color: 'white' } },
+                x: { ticks: { color: 'white' } }
+            }
+        }
+    });
+
+    // Page fade-in
+    window.onload = () => {
+        document.body.style.opacity = 1;
+    };
+</script>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>
