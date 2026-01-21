@@ -50,10 +50,10 @@ User inputs are processed to calculate BMI and daily calorie requirements. These
 ## Application Screenshots
 
 ### Home Page
-![Home Page](ScreenShots/Screenshot_21-1-2026_121819_127.0.0.1.jpeg)
+![Home Page](ScreenShots/Screenshot%20(38).png)
 
 ### Dashboard View
-![Dashboard View](ScreenShots/Screenshot%20(38).png)
+![Dashboard View](ScreenShots/Screenshot_21-1-2026_121819_127.0.0.1.jpeg)
 
 ---
 
